@@ -84,9 +84,8 @@ public class ChecksumAnnotatorTest {
             final File checksumFile = dir.newFile("checksum");
             
             final HashProvider hash = new HashProviderFactory().getProvider(config.getHash().getType());
-            final String checksum = hash.derive(
-                Files.readAllBytes(artifactFile.toPath())
-            );
+            String hashAndPath = hash.derive(Files.readAllBytes(artifactFile.toPath())) + "  " + artifactFile.toPath().toString() + "\n";
+            final String checksum = hash.derive(hashAndPath.getBytes());
 
             Files.write(checksumFile.toPath(), checksum.getBytes());
 
@@ -115,4 +114,78 @@ public class ChecksumAnnotatorTest {
 
     }
 
+    @Test
+    public void executeShouldReturnAnnotationForArtifactDirectory() throws AnnotatorException, HashTypeException, IOException {
+
+            AnnotatorFactory factory = new AnnotatorFactory();
+            KeyInfo privateKey = new KeyInfo(
+                            "./src/test/java/com/alvarium/annotators/public.key",
+                            SignType.Ed25519);
+            KeyInfo publicKey = new KeyInfo(
+                            "./src/test/java/com/alvarium/annotators/public.key",
+                            SignType.Ed25519);
+            SignatureInfo sign = new SignatureInfo(publicKey, privateKey);
+
+            final Gson gson = new GsonBuilder()
+                .registerTypeAdapter(AnnotatorConfig.class, new AnnotatorConfigConverter())
+                .create();
+            final String cfgJson = "{\"kind\": \"checksum\"}";
+            final AnnotatorConfig checksumCfg = gson.fromJson(
+                        cfgJson, 
+                        AnnotatorConfig.class
+            );
+
+            final AnnotatorConfig[] annotators = {checksumCfg};  
+            final SdkInfo config = new SdkInfo(annotators, new HashInfo(HashType.MD5Hash), sign, null);
+
+            // init logger
+            final Logger logger = LogManager.getRootLogger();
+            Configurator.setRootLevel(Level.DEBUG);
+            Annotator annotator = factory.getAnnotator(checksumCfg, config, logger);
+            
+            // Generate dummy artifact and generate checksum
+            
+            final File artifactDirectory = dir.newFolder("artifact");
+            final File artifactFile1 = new File(artifactDirectory, "file1");
+            final File subDirectory = new File(artifactDirectory, "sub");
+            final File artifactFile2 = new File(subDirectory, "file2");
+            subDirectory.mkdir();
+            artifactFile1.createNewFile();
+            artifactFile2.createNewFile();
+            Files.write(artifactFile1.toPath(), "foo".getBytes());
+            Files.write(artifactFile2.toPath(), "boo".getBytes());
+            
+            final File checksumFile = dir.newFile("checksum");
+            
+            final HashProvider hash = new HashProviderFactory().getProvider(config.getHash().getType());
+            String hashAndPath = hash.derive(Files.readAllBytes(artifactFile1.toPath())) + "  " + artifactFile1.toPath().toString() + "\n";
+            hashAndPath = hashAndPath + hash.derive(Files.readAllBytes(artifactFile2.toPath())) + "  " + artifactFile2.toPath().toString() + "\n";
+            final String checksum = hash.derive(hashAndPath.getBytes());
+
+            Files.write(checksumFile.toPath(), checksum.getBytes());
+
+            System.out.println(checksum);
+            final ChecksumAnnotatorProps props = new ChecksumAnnotatorProps(
+                    artifactDirectory.toPath().toString(),
+                    checksumFile.toPath().toString()
+            );
+
+            PropertyBag ctx = new ImmutablePropertyBag(
+                    Map.of(AnnotationType.CHECKSUM.name(), props)
+            );
+            
+            byte[] data = "pipeline1/1".getBytes();
+            Annotation annotation = annotator.execute(ctx, data);
+            System.out.println(annotation.toJson());
+            assert annotation.getIsSatisfied();
+
+            // change artifact checksum
+            Files.write(artifactFile1.toPath(), "tampered".getBytes()); 
+            
+            annotation = annotator.execute(ctx, data);
+            System.out.println(annotation.toJson());
+            assert !annotation.getIsSatisfied();
+
+
+    }
 }

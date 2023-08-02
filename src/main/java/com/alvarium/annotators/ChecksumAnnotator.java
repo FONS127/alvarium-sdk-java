@@ -13,6 +13,7 @@
  *******************************************************************************/
 package com.alvarium.annotators;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -20,7 +21,12 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.Collator;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 import org.apache.logging.log4j.Logger;
 
@@ -66,8 +72,8 @@ public class ChecksumAnnotator extends AbstractAnnotator implements Annotator {
             // Get artifact checksum
             final String checksum = this.readFile(props.getChecksumPath());
 
-            // Validate artifact checksum
-            final String artifactHash = this.hashFile(props.getArtifactPath());
+            // Validate artifact checksum            
+            final String artifactHash = this.hashArtifact(props.getArtifactPath());
 
             isSatisfied = checksum.equals(artifactHash);
         } catch (UnknownHostException | AnnotatorException e) {
@@ -129,13 +135,13 @@ public class ChecksumAnnotator extends AbstractAnnotator implements Annotator {
         return content;
     }
 
-   /**
+    /**
      * Reads and hashes a file on the local file system in in chunks of 8KB 
      * @param filePath
      * @return hash of the file's contents in string format
      * @throws AnnotatorException - When bad file path or corrupted file given
      */
-     private final String hashFile(String filePath) throws AnnotatorException {
+    private final String hashFile(String filePath) throws AnnotatorException {
         try {
             FileInputStream fs = new FileInputStream(filePath);
             final byte[] buffer = new byte[8192];
@@ -160,4 +166,60 @@ public class ChecksumAnnotator extends AbstractAnnotator implements Annotator {
 
         return this.hashProvider.getValue();
     }
+
+    /**
+     * Recursively gets all files in a directory as a list of absolute paths
+     * @param path
+     * @return List<String> of all files in directory
+     */
+    private List<String> getAllFiles(String path) {
+        List<String> files = new ArrayList<>();
+        File directory = new File(path);
+
+        if (directory.isDirectory()) {
+            File[] directoryFiles = directory.listFiles();
+            if (directoryFiles != null) {
+                for (File file : directoryFiles) {
+                    if (file.isFile()) {
+                        files.add(file.getAbsolutePath());
+                    } else if (file.isDirectory()) {
+                        files.addAll(getAllFiles(file.getAbsolutePath()));
+                    }
+                }
+            }
+        } else if (directory.isFile()) {
+            files.add(directory.getAbsolutePath());
+        }
+        return files;
+    }
+
+    /**
+     * Hashes a string
+     * @param input
+     * @return hash of the string in string format
+     */
+    private String hashString(String input) {
+        return this.hashProvider.derive(input.getBytes());
+    }
+
+    /**
+     * Computes the hash of all files hashes and their corresponding paths in the specified directory and returns the
+     * hash value as a string.
+     * @param path the path of the directory to hash
+     * @return the hash value of the directory as a string
+     * @throws AnnotatorException if an error occurs while hashing the directory
+     */
+    private String hashArtifact(String path) throws AnnotatorException {
+        List<String> filePaths = getAllFiles(path);
+        for(int i = 0 ; i<filePaths.size();i++){
+            String hashThenPath = hashFile(filePaths.get(i)) + "  " + filePaths.get(i);
+            filePaths.set(i, hashThenPath);
+        }
+        Collections.sort(filePaths, Collator.getInstance(Locale.US));
+
+        String hashesAndFiles = String.join("\n", filePaths) + "\n";
+        final String artifactHash = hashString(hashesAndFiles);
+
+        return artifactHash;
+     }
 }
