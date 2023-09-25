@@ -31,7 +31,7 @@ pipeline {
         stage('alvarium - pre-build annotations') {
             steps {
                 script{
-                    def optionalParams = ['sourceCodeChecksumPath':'${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/sc_checksum']
+                    def optionalParams = ['sourceCodeChecksumPath':"${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/sc_checksum"]
                     alvariumCreate(['source-code', 'vulnerability'],optionalParams)
                 }
             }
