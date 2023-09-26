@@ -29,7 +29,7 @@ pipeline {
 
         stage('alvarium - pre-build annotations') {
             steps {
-                sh 'cat $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/sc_checksum'
+                sh 'cat $JENKINS_HOME/$JOB_NAME/$BUILD_NUMBER/sc_checksum'
                 sh 'find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum'
                 sh 'pwd'
                 script{
