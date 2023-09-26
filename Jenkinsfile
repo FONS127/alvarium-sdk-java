@@ -52,11 +52,8 @@ pipeline {
                     do
                         mkdir -p $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/
                         md5sum $f | cut -d ' ' -f 1 | tr 'a-z' 'A-Z' | tr -d '\n' \
-                            > $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/alvarium-sdk-1.0-SNAPSHOT.jar.checksum
+                            > $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/$(basename $f).checksum
                     done
-
-                    echo $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/alvarium-sdk-1.0-SNAPSHOT.jar.checksum
-                    cat $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/alvarium-sdk-1.0-SNAPSHOT.jar.checksum
                     '''
 
                     // Check if artifact has a valid checksum... Ideally this
@@ -67,9 +64,8 @@ pipeline {
                     // store
                     // TODO (Ali Amin): Find a way to persist the checksum
                     script {
-                        def artifactChecksum = readFile "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum"
-                        def optionalParams = ["artifactPath":'${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar']
-                        alvariumMutate(['checksum'], artifactChecksum, artifactChecksum.bytes)
+                        def artifactChecksum = readFile "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum" 
+                        alvariumMutate(['checksum'], '${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar', artifactChecksum.bytes)
                     }   
                 }
             }
