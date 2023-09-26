@@ -40,37 +40,37 @@ pipeline {
             }
         }
 
-        stage('build') {
-            steps {
-                sh 'mvn package'
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'target/**/*.jar', fingerprint: true
+        // stage('build') {
+        //     steps {
+        //         sh 'mvn package'
+        //     }
+        //     post {
+        //         success {
+        //             archiveArtifacts artifacts: 'target/**/*.jar', fingerprint: true
 
-                    // Generate artifact checksums
-                    sh ''' for f in target/*.jar;
-                    do
-                        mkdir -p $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/
-                        md5sum $f | cut -d ' ' -f 1 | tr 'a-z' 'A-Z' | tr -d '\n' \
-                            > $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/$(basename $f).checksum
-                    done
-                    '''
+        //             // Generate artifact checksums
+        //             sh ''' for f in target/*.jar;
+        //             do
+        //                 mkdir -p $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/
+        //                 md5sum $f | cut -d ' ' -f 1 | tr 'a-z' 'A-Z' | tr -d '\n' \
+        //                     > $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/$(basename $f).checksum
+        //             done
+        //             '''
 
-                    // Check if artifact has a valid checksum... Ideally this
-                    // should be done by whatever is pulling the artifact but
-                    // alvarium currently has no way of persisting information
-                    // relating to annotator logic, which is why the checksum is
-                    // being fetched from the file system instead of a persistent
-                    // store
-                    // TODO (Ali Amin): Find a way to persist the checksum
-                    script {
-                        def artifactChecksum = readFile "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum"
-                        def optionalParams = ["artifactPath":"${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar", "checksumPath": "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum"]
-                        alvariumMutate(['checksum'], optionalParams, artifactChecksum.bytes)
-                    }   
-                }
-            }
-        }
+        //             // Check if artifact has a valid checksum... Ideally this
+        //             // should be done by whatever is pulling the artifact but
+        //             // alvarium currently has no way of persisting information
+        //             // relating to annotator logic, which is why the checksum is
+        //             // being fetched from the file system instead of a persistent
+        //             // store
+        //             // TODO (Ali Amin): Find a way to persist the checksum
+        //             script {
+        //                 def artifactChecksum = readFile "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum"
+        //                 def optionalParams = ["artifactPath":"${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar", "checksumPath": "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum"]
+        //                 alvariumMutate(['checksum'], optionalParams, artifactChecksum.bytes)
+        //             }   
+        //         }
+        //     }
+        // }
     }
 }
