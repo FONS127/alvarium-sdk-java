@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('prep - generate source code checksum') {
             steps {
-                sh 'mkdir -p $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/'
+                sh 'mkdir -p $JENKINS_HOME/$JOB_NAME/$BUILD_NUMBER/'
                 sh ''' find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum |\
                         cut -d" " -f1 \
                         > $JENKINS_HOME/$JOB_NAME/$BUILD_NUMBER/checksum
@@ -66,7 +66,7 @@ pipeline {
                     script {
                         def artifactChecksum = readFile "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum"
                         def optionalParams = ["artifactPath":'${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar']
-                        alvariumMutate(['checksum'], optionalParams, artifactChecksum.bytes)
+                        alvariumMutate(['checksum'], artifactChecksum, artifactChecksum.bytes)
                     }   
                 }
             }
