@@ -72,7 +72,8 @@ class SourceCodeAnnotator extends AbstractAnnotator implements Annotator {
         try{
             host = InetAddress.getLocalHost().getHostName();
             final String checksum = this.readChecksum(props.getChecksumPath());
-            final String generatedChecksum = this.generateChecksum(props.getSourceCodePath());
+            final String generatedChecksum = this.generateChecksum(props.getSourceCodePath
+            this.logger.error("GENERATED CHECKSUN" + generatedChecksum + " CHECKSUM: " + checksum);
             isSatisfied = generatedChecksum.equals(checksum);
         } catch (UnknownHostException | AnnotatorException e) {
             isSatisfied = false;
