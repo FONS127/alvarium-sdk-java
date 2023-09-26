@@ -9,7 +9,7 @@ pipeline {
         stage('prep - generate source code checksum') {
             steps {
                 sh 'mkdir -p $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/'
-                sh ''' find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum |\
+                sh ''' find alvariumjenkins:/var/lib/jenkins/jobs/alvarium-sdk-java/77 -type f -exec md5sum {} + | LC_ALL=C sort | md5sum |\
                         cut -d" " -f1 \
                         > $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/sc_checksum
                 '''
@@ -30,7 +30,7 @@ pipeline {
         stage('alvarium - pre-build annotations') {
             steps {
                 sh 'cat $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/sc_checksum'
-                sh 'find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum'
+                sh 'find alvariumjenkins:/var/lib/jenkins/jobs/alvarium-sdk-java/77 -type f -exec md5sum {} + | LC_ALL=C sort | md5sum'
                 sh 'pwd'
                 script{
                     def optionalParams = ['sourceCodeChecksumPath':"${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/sc_checksum"]
