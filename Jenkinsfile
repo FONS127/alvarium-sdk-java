@@ -1,4 +1,4 @@
-@Library('alvarium-pipelines@main') _
+@Library('alvarium-pipelines') _
 
 pipeline {
     agent any
@@ -8,10 +8,10 @@ pipeline {
     stages {
         stage('prep - generate source code checksum') {
             steps {
-                sh 'mkdir -p $JENKINS_HOME/$JOB_NAME/$BUILD_NUMBER/'
+                sh 'mkdir -p $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/'
                 sh ''' find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum |\
                         cut -d" " -f1 \
-                        > $JENKINS_HOME/$JOB_NAME/$BUILD_NUMBER/checksum
+                        > $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/sc_checksum
                 '''
             }
         }
@@ -29,12 +29,12 @@ pipeline {
 
         stage('alvarium - pre-build annotations') {
             steps {
-                sh 'cat $JENKINS_HOME/$JOB_NAME/$BUILD_NUMBER/checksum'
+                sh 'cat $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/sc_checksum'
                 sh 'find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum'
                 sh 'pwd'
                 script{
                     def optionalParams = ['sourceCodeChecksumPath':"${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/sc_checksum"]
-                    alvariumCreate(['source-code', 'vulnerability'])
+                    alvariumCreate(['source-code', 'vulnerability'],optionalParams)
                 }
             }
         }
@@ -64,8 +64,9 @@ pipeline {
                     // store
                     // TODO (Ali Amin): Find a way to persist the checksum
                     script {
-                        def artifactChecksum = readFile "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum" 
-                        alvariumMutate(['checksum'], "${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar", artifactChecksum.bytes)
+                        def artifactChecksum = readFile "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum"
+                        def optionalParams = ["artifactPath":"${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar"]
+                        alvariumMutate(['checksum'], optionalParams, artifactChecksum.bytes)
                     }   
                 }
             }
