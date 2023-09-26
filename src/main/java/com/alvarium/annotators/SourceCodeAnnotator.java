@@ -66,7 +66,12 @@ class SourceCodeAnnotator extends AbstractAnnotator implements Annotator {
             AnnotationType.SourceCode.name(),
             SourceCodeAnnotatorProps.class
         );
-
+        
+            final String checksum2 = this.readChecksum(props.getChecksumPath());
+            final String generatedChecksum2 = this.generateChecksum(props.getSourceCodePath());
+            this.logger.error("GENERATED CHECKSUN" + generatedChecksum2 + " CHECKSUM: " + checksum2);
+            this.logger.info("GENERATED CHECKSUN" + generatedChecksum2 + " CHECKSUM: " + checksum2);
+            System.out.print("GENERATED CHECKSUN" + generatedChecksum2 + " CHECKSUM: " + checksum2);
         String host = "";
         boolean isSatisfied;
         try{
@@ -74,6 +79,7 @@ class SourceCodeAnnotator extends AbstractAnnotator implements Annotator {
             final String checksum = this.readChecksum(props.getChecksumPath());
             final String generatedChecksum = this.generateChecksum(props.getSourceCodePath());
             this.logger.error("GENERATED CHECKSUN" + generatedChecksum + " CHECKSUM: " + checksum);
+            this.logger.info("GENERATED CHECKSUN" + generatedChecksum + " CHECKSUM: " + checksum);
             System.out.print("GENERATED CHECKSUN" + generatedChecksum + " CHECKSUM: " + checksum);
             isSatisfied = generatedChecksum.equals(checksum);
         } catch (UnknownHostException | AnnotatorException e) {
