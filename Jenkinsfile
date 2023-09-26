@@ -54,6 +54,9 @@ pipeline {
                         md5sum $f | cut -d ' ' -f 1 | tr 'a-z' 'A-Z' | tr -d '\n' \
                             > $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/alvarium-sdk-1.0-SNAPSHOT.jar.checksum
                     done
+
+                    echo $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/alvarium-sdk-1.0-SNAPSHOT.jar.checksum
+                    cat $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/alvarium-sdk-1.0-SNAPSHOT.jar.checksum
                     '''
 
                     // Check if artifact has a valid checksum... Ideally this
