@@ -65,7 +65,7 @@ pipeline {
                     // TODO (Ali Amin): Find a way to persist the checksum
                     script {
                         def artifactChecksum = readFile "/${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/alvarium-sdk-1.0-SNAPSHOT.jar.checksum" 
-                        alvariumMutate(['checksum'], '${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar', artifactChecksum.bytes)
+                        alvariumMutate(['checksum'], "${WORKSPACE}/target/alvarium-sdk-1.0-SNAPSHOT.jar", artifactChecksum.bytes)
                     }   
                 }
             }
