@@ -1,4 +1,4 @@
-@Library('alvarium-pipelines') _
+@Library('alvarium-pipelines@main') _
 
 pipeline {
     agent any
@@ -11,7 +11,7 @@ pipeline {
                 sh 'mkdir -p $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/'
                 sh ''' find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum |\
                         cut -d" " -f1 \
-                        > $JENKINS_HOME/jobs/$JOB_NAME/$BUILD_NUMBER/sc_checksum
+                        > $JENKINS_HOME/$JOB_NAME/$BUILD_NUMBER/checksum
                 '''
             }
         }
@@ -34,7 +34,7 @@ pipeline {
                 sh 'pwd'
                 script{
                     def optionalParams = ['sourceCodeChecksumPath':"${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/sc_checksum"]
-                    alvariumCreate(['source-code', 'vulnerability'],optionalParams)
+                    alvariumCreate(['source-code', 'vulnerability'])
                 }
             }
         }
