@@ -33,7 +33,7 @@ pipeline {
                 sh 'find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum'
                 sh 'pwd'
                 script{
-                    def optionalParams = ['sourceCodeChecksumPath':'${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/sc_checksum']
+                    def optionalParams = ['sourceCodeChecksumPath':"${JENKINS_HOME}/jobs/${JOB_NAME}/${BUILD_NUMBER}/sc_checksum"]
                     alvariumCreate(['source-code', 'vulnerability'],optionalParams)
                 }
                 sh 'find . -type f -exec md5sum {} + | LC_ALL=C sort | md5sum'
