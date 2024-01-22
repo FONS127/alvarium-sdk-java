@@ -15,12 +15,14 @@
 package com.alvarium;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 
 import com.alvarium.utils.PropertyBag;
+import com.google.gson.JsonObject;
 import com.alvarium.annotators.Annotator;
 import com.alvarium.annotators.AnnotatorException;
 import com.alvarium.annotators.AnnotatorFactory;
@@ -30,9 +32,44 @@ import com.alvarium.utils.ImmutablePropertyBag;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.builder.api.AppenderComponentBuilder;
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;
+import org.apache.logging.log4j.core.config.builder.api.LayoutComponentBuilder;
+import org.apache.logging.log4j.core.config.builder.api.LoggerComponentBuilder;
+import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
+import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 import org.junit.Test;
 
+
+//  class CustomJsonLayout extends AbstractStringLayout {
+
+//     protected CustomJsonLayout(Charset charset) {
+//         super(charset);
+//     }
+
+//     @Override
+//     public String toSerializable(LogEvent event) {
+//         // Create a new JSON object
+//         JsonObject jsonObject = new JsonObject();
+
+//         // Add custom fields to the JSON object
+//         jsonObject.addProperty("level", event.getLevel().toString());
+//         jsonObject.addProperty("loggerName", event.getLoggerName());
+//         jsonObject.addProperty("message", "ADSSAD");
+
+//         // Convert the JSON object to a string and return it
+//         return jsonObject.toString();
+//     }
+
+//     public static CustomJsonLayout createLayout() {
+//         return new CustomJsonLayout(Charset.defaultCharset());
+//     }
+// }
 class MockSdk implements Sdk {
   public void create(PropertyBag properties, byte[] data) {}
   public void create(byte[] data) {
@@ -75,9 +112,39 @@ public class SdkTest {
     final AnnotatorFactory annotatorFactory = new AnnotatorFactory();
 
     // init logger
-    final Logger logger = LogManager.getRootLogger();
-    Configurator.setRootLevel(Level.DEBUG);
+    ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationBuilderFactory.newConfigurationBuilder();
+    // Create a new JSON layout
+    LayoutComponentBuilder layoutBuilder = builder.newLayout("JsonLayout")
+        .addAttribute("compact", true)
+        .addAttribute("eventEol", true)
+        .addAttribute("locationInfo", true)
+        .addAttribute("properties", true)
+        .addAttribute("complete", true)
+        .addAttribute("timestampFormat", "yyyy-MM-dd'T'HH:mm:ss'Z'")
+        .addAttribute("timestampFormatTimeZoneId", "UTC");
 
+    // Create a new console appender with the JSON layout
+    AppenderComponentBuilder appenderBuilder = builder.newAppender("Stdout", "CONSOLE")
+        .addAttribute("target", ConsoleAppender.Target.SYSTEM_OUT)
+        .add(layoutBuilder);
+
+    // Add the appender to the builder
+    builder.add(appenderBuilder);
+
+    // Create a logger with the appender
+    LoggerComponentBuilder loggerBuilder = builder.newLogger("Logger", Level.DEBUG)
+        .add(builder.newAppenderRef("Stdout"))
+        .addAttribute("additivity", false);
+
+    // Add the logger to the builder
+    builder.add(loggerBuilder);
+
+    // Initialize the configuration
+    Configurator.initialize(builder.build());
+
+    // Get the logger
+    Logger logger = LogManager.getLogger("Logger");
+    logger.debug("Hello, World!");
     for (int i = 0; i < annotators.length; i++) {
       annotators[i] = annotatorFactory.getAnnotator(sdkInfo.getAnnotators()[i], sdkInfo, logger);
     }
