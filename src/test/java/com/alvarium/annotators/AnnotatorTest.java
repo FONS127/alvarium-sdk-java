@@ -93,4 +93,36 @@ public class AnnotatorTest {
     assert satisfiedAnnotation.getIsSatisfied();
     assert !unsatisfiedAnnotation.getIsSatisfied();
   }  
+
+  @Test
+  public void mockAnnotatorShouldReturnImageTag() throws AnnotatorException {
+    final KeyInfo keyInfo = new KeyInfo("path", SignType.none);
+    final SignatureInfo signature = new SignatureInfo(keyInfo, keyInfo);
+    final HashInfo noHash = new HashInfo(HashType.NoHash);
+
+    final Gson gson = new GsonBuilder()
+      .registerTypeAdapter(AnnotatorConfig.class, new AnnotatorConfigConverter())
+      .create();
+
+    final String mockConfig = "{\"kind\": \"mock\"}";
+
+    final AnnotatorConfig annotatorInfo = gson.fromJson(mockConfig, AnnotatorConfig.class);
+
+    final AnnotatorConfig[] annotators = {annotatorInfo};
+    final SdkInfo noHashConfig = new SdkInfo(annotators, noHash, signature, null);
+
+    final Logger logger = LogManager.getRootLogger();
+    Configurator.setRootLevel(Level.DEBUG);
+
+    final AnnotatorFactory factory = new AnnotatorFactory();
+    final Annotator noHashAnnotator = factory.getAnnotator(annotatorInfo, noHashConfig, logger);
+
+    final byte[] data = "test data".getBytes();
+    final PropertyBag ctx = new ImmutablePropertyBag(new HashMap<>());
+
+    final Annotation noHashAnnotation = noHashAnnotator.execute(ctx, data);
+
+
+    assert "".equals(noHashAnnotation.getImageTag());
+  }
 }

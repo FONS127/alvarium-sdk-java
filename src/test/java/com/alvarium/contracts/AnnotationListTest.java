@@ -32,7 +32,8 @@ public class AnnotationListTest {
     final Annotation annotation = new Annotation(
       "key", 
       HashType.NoHash,
-      "host", 
+      "host",
+      "imageTag", 
       AnnotationType.MOCK, 
       "signature", 
       true, 

@@ -34,18 +34,20 @@ public class Annotation implements Serializable {
   private final String key;
   private final HashType hash;
   private final String host;
+  private final String imageTag;
   private final AnnotationType kind;
   private String signature;
   private final Boolean isSatisfied;
   private final Instant timestamp;
 
-  public Annotation(String key, HashType hash, String host, AnnotationType kind, String signature,
+  public Annotation(String key, HashType hash, String host, String imageTag, AnnotationType kind, String signature,
       Boolean isSatisfied, Instant timestamp) {
     ULID ulid = new ULID();
     this.id = ulid.nextULID(); 
     this.key = key;
     this.hash = hash;
     this.host = host;
+    this.imageTag = imageTag;
     this.kind = kind;
     this.signature = signature;
     this.isSatisfied = isSatisfied;
@@ -74,6 +76,10 @@ public class Annotation implements Serializable {
     
     public String getHost() {
       return this.host;
+    }
+
+    public String getImageTag() {
+      return this.imageTag;
     }
 
     public AnnotationType getKind() {

@@ -61,6 +61,7 @@ class SourceCodeAnnotator extends AbstractAnnotator implements Annotator {
     public Annotation execute(PropertyBag ctx, byte[] data) throws AnnotatorException {
         this.initHashProvider(this.hash);
         final String key = this.hashProvider.derive(data);
+        final String imageTag = System.getenv(IMAGE_TAG_ENV_KEY) == null ? "" : System.getenv(IMAGE_TAG_ENV_KEY);
 
         final SourceCodeAnnotatorProps props = ctx.getProperty(
             AnnotationType.SourceCode.name(),
@@ -83,6 +84,7 @@ class SourceCodeAnnotator extends AbstractAnnotator implements Annotator {
                 key,
                 hash,
                 host,
+                imageTag, 
                 kind,
                 null,
                 isSatisfied,

@@ -37,6 +37,7 @@ import com.alvarium.utils.Encoder;
 abstract class AbstractAnnotator {
 
   protected  Logger logger;
+  public static final String IMAGE_TAG_ENV_KEY = "IMAGE_TAG";
 
   AbstractAnnotator(Logger logger) {
     this.logger = logger;
